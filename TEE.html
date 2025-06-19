@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แผนการเรียนครุศาสตร์อุตสาหกรรมบัณฑิต สาขาวิชาวิศวกรรมไฟฟ้าและการศึกษา (5 ปี)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .main-container {
+            background-color: #1f2937; /* bg-gray-800 */
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #374151;
+        }
+        .flowchart-container {
+            display: none; /* Hidden by default */
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+        .semester-display {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-height: 400px;
+            justify-content: flex-start;
+            align-items: center;
+            width: 100%;
+        }
+        .semester-title {
+            font-weight: 700;
+            color: #e5e7eb;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .course-card {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.9em;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            word-wrap: break-word;
+            width: 95%;
+            max-width: 380px;
+            color: #d1d5db;
+        }
+        .course-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .course-card.general { border-left: 5px solid #60a5fa; }
+        .course-card.core { border-left: 5px solid #fb923c; }
+        .course-card.major { border-left: 5px solid #4ade80; }
+        .course-card.major_elective { border-left: 5px solid #f06292; }
+        .course-card.elective { border-left: 5px solid #9575cd; }
+        .course-card.practice { border-left: 5px solid #22d3ee; }
+        .course-card.english-taught { box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); }
+        .course-card.previously-studied {
+            background-color: #434442;
+            box-shadow: 0 0 8px rgba(255, 238, 88, 0.5);
+        }
+        .unit-credit {
+            font-size: 0.8em;
+            color: #9ca3af;
+            margin-top: 5px;
+            display: block;
+        }
+        .subject-type-label {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            gap: 15px;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+        .label-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85em;
+            color: #9ca3af;
+        }
+        .label-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            margin-right: 8px;
+            background-color: #374151;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #1f2937;
+            color: #d1d5db;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #4b5563;
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .main-container { padding: 15px; }
+            .semester-title { font-size: 1.5em; }
+            .course-card { padding: 10px; font-size: 0.85em; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div id="branchSelection" class="flex flex-col items-center justify-center min-h-[50vh] text-center w-full">
+            <h1 class="text-3xl font-bold text-white mb-8">
+                เลือกแขนงวิชาที่คุณสนใจ
+            </h1>
+            <div class="flex flex-col md:flex-row gap-6">
+                <button id="powerSystemBtn" class="px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-colors text-lg font-semibold transform hover:scale-105">
+                    แขนงวิชาวิศวกรรมระบบไฟฟ้ากำลังและระบบควบคุม
+                </button>
+                <button id="electronicsTelecomBtn" class="px-8 py-4 bg-green-600 text-white rounded-xl shadow-lg hover:bg-green-700 transition-colors text-lg font-semibold transform hover:scale-105">
+                    แขนงวิชาวิศวกรรมอิเล็กทรอนิกส์และโทรคมนาคม
+                </button>
+            </div>
+            <button id="backToMainIndexBtn" class="mt-8 px-6 py-3 bg-gray-600 text-gray-200 rounded-lg shadow-md hover:bg-gray-500 transition-colors">
+                &larr; กลับไปหน้าหลักรวมภาควิชา
+            </button>
+        </div>
+
+        <div id="curriculumDisplayArea" class="flowchart-container">
+            <button id="backToBranchBtn" class="mb-6 px-4 py-2 bg-gray-600 text-gray-200 rounded-lg shadow hover:bg-gray-500 transition-colors self-start">
+                &larr; กลับไปเลือกแขนงวิชา
+            </button>
+
+            <h1 id="mainCurriculumTitle" class="text-3xl font-bold text-center text-white mb-8"></h1>
+
+            <div class="subject-type-label">
+                 <div class="label-item"><span class="label-color border-l-4 border-blue-400"></span>ศึกษาทั่วไป</div>
+                <div class="label-item"><span class="label-color border-l-4 border-orange-400"></span>บังคับ(พื้นฐาน)</div>
+                <div class="label-item"><span class="label-color border-l-4 border-green-400"></span>บังคับ(เฉพาะ)</div>
+                <div class="label-item"><span class="label-color border-l-4 border-pink-400"></span>เลือก(เฉพาะ)</div>
+                <div class="label-item"><span class="label-color border-l-4 border-purple-400"></span>เลือก(ทั่วไป)</div>
+                <div class="label-item"><span class="label-color border-l-4 border-cyan-400"></span>ปฏิบัติการ</div>
+                <div class="label-item"><span class="label-color shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>สอน(อังกฤษ)</div>
+                <div class="label-item"><span class="label-color shadow-[0_0_8px_rgba(255,238,88,0.5)]"></span>เคยเรียนแล้ว</div>
+            </div>
+
+            <div id="semesterDisplay" class="semester-display"></div>
+
+            <div class="flex flex-col items-center gap-4 mt-8 w-full">
+                <select id="semesterSelect" class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-auto max-w-xs"></select>
+                <div class="flex justify-center gap-4 w-full max-w-sm">
+                    <button id="prevBtn" class="flex-1 px-6 py-3 bg-gray-600 text-gray-200 rounded-lg shadow-md hover:bg-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        เทอมก่อนหน้า
+                    </button>
+                    <button id="nextBtn" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        เทอมถัดไป
+                    </button>
+                </div>
+            </div>
+
+            <div id="courseModal" class="fixed inset-0 flex items-center justify-center z-50 hidden modal">
+                <div class="p-8 rounded-lg shadow-xl max-w-lg w-full m-4 relative modal-content">
+                    <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+                    <h2 id="modalCourseTitle" class="text-2xl font-bold mb-2 text-center text-white"></h2>
+                    <p id="modalCourseEnglishTitle" class="text-gray-400 italic mb-4 text-center"></p>
+                    <p id="modalCourseUnits" class="text-gray-400 mb-6 text-center"></p>
+
+                    <div id="modalPrerequisites" class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-300 border-b border-gray-600 pb-2 mb-2">วิชาที่ต้องผ่านก่อนหน้า:</h3>
+                        <ul id="prereqList" class="list-disc list-inside text-gray-400 pl-4"></ul>
+                        <p id="noPrereqs" class="text-gray-500 italic hidden">ไม่มี</p>
+                    </div>
+
+                    <div id="modalSubsequentCourses">
+                        <h3 class="text-lg font-semibold text-gray-300 border-b border-gray-600 pb-2 mb-2">วิชาที่ต่อเนื่อง:</h3>
+                        <ul id="subsequentList" class="list-disc list-inside text-gray-400 pl-4"></ul>
+                        <p id="noSubsequent" class="text-gray-500 italic hidden">ไม่มี</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data for Power System and Control System Engineering Branch
+        const powerSystemCurriculum = [
+            // Year 1, Semester 1
+            {
+                title: "ปี 1 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020023221", name: "หลักวิชาชีพครู", englishName: "Teaching Profession", units: "3(3-0-6)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253001*", name: "การเขียนแบบวิศวกรรม", englishName: "Engineering Drawing", units: "3(2-2-5)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253008", name: "การวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253009", name: "ปฏิบัติการวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement Laboratory" }] },
+                    { id: "040113001", name: "เคมีสำหรับวิศวกร", englishName: "Chemistry for Engineers", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040113002", name: "ปฏิบัติการเคมีสำหรับวิศวกร", englishName: "Chemistry Laboratory for Engineers" }] },
+                    { id: "040313005", name: "ฟิสิกส์ 1", englishName: "Physics 1", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040313006", name: "ปฏิบัติการฟิสิกส์ 1", englishName: "Physics Laboratory 1" }] },
+                    { id: "040313006", name: "ปฏิบัติการฟิสิกส์ 1", englishName: "Physics Laboratory 1", units: "1(0-2-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040313005", name: "ฟิสิกส์ 1", englishName: "Physics 1" }], subsequentCourses: [] },
+                    { id: "040203111", name: "คณิตศาสตร์วิศวกรรม 1", englishName: "Engineering Mathematics I", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [{ id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II" }] },
+                    { id: "080103001", name: "ภาษาอังกฤษ 1", englishName: "English 1", units: "3(3-0-6)", type: "general", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [{ id: "080103002", name: "ภาษาอังกฤษ 2", englishName: "English II" }] }
+                ]
+            },
+            // Year 1, Semester 2
+            {
+                title: "ปี 1 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020023228", name: "การวัดและการประเมินผลการศึกษา", englishName: "Educational Measurement and Evaluation", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [{ id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II" }] },
+                    { id: "020003101", name: "คอมพิวเตอร์เพื่อการศึกษาเบื้องต้น", englishName: "Basic Computer for Education", units: "1(1-1-2)", type: "general", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253009", name: "ปฏิบัติการวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement Laboratory", units: "1(0-3-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253008", name: "การวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement" }], subsequentCourses: [] },
+                    { id: "020253013", name: "ปฏิบัติงานวิศวกรรมไฟฟ้าเบื้องต้น", englishName: "Basic Electrical Engineering Practice", units: "3(0-6-3)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253021", name: "เทคโนโลยีการสื่อสาร", englishName: "Communication Technology", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253424", name: "การสื่อสารข้อมูลและเครือข่ายคอมพิวเตอร์", englishName: "Data Communication and Computer Networks" }] },
+                    { id: "040113002", name: "ปฏิบัติการเคมีสำหรับวิศวกร", englishName: "Chemistry Laboratory for Engineers", units: "1(0-3-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "040113001", name: "เคมีสำหรับวิศวกร", englishName: "Chemistry for Engineers" }], subsequentCourses: [] },
+                    { id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "040203111", name: "คณิตศาสตร์วิศวกรรม 1", englishName: "Engineering Mathematics I" }], subsequentCourses: [{ id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics" }, { id: "020253004*", name: "วงจรไฟฟ้า", englishName: "Electric Circuits" }] },
+                    { id: "080103002", name: "ภาษาอังกฤษ 2", englishName: "English II", units: "3(3-0-6)", type: "general", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "080103001", name: "ภาษาอังกฤษ 1", englishName: "English 1" }], subsequentCourses: [] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชากีฬาและนันทนาการ", englishName: "Sport and Recreation Elective Course", units: "1(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 2, Semester 1
+            {
+                title: "ปี 2 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020003103*", name: "คอมพิวเตอร์และการโปรแกรม", englishName: "Computer and Programming", units: "3(2-2-5)", type: "general", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023227", name: "นวัตกรรมและสื่อดิจิทัลเพื่อการเรียนการสอน", englishName: "Innovations and Digital Instructional Media", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1" }] },
+                    { id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II" }], subsequentCourses: [{ id: "020253006*", name: "สนามแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Fields" }, { id: "020253022*", name: "สัญญาณและระบบ", englishName: "Signal and System" }] },
+                    { id: "020253002", name: "กลศาสตร์วิศวกรรม", englishName: "Engineering Mechanics", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253003", name: "วัสดุวิศวกรรม", englishName: "Engineering Materials", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253004*", name: "วงจรไฟฟ้า", englishName: "  Electric Circuits", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [{ id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II" }], subsequentCourses: [] },
+                    { id: "020253019*", name: "อุปกรณ์อิเล็กทรอนิกส์และวงจรแอนะล็อก", englishName: "Electronic Devices and Analog Circuits", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253418", name: "วิศวกรรมอิเล็กทรอนิกส์ขั้นสูง", englishName: "Advanced Electronic Engineering" }, { id: "020253419", name: "การออกแบบวงจรอิเล็กทรอนิกส์", englishName: "Electronic Circuit Design" }] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชากีฬาและนันทนาการ", englishName: "Sport and Recreation Elective Course", units: "1(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 2, Semester 2
+            {
+                title: "ปี 2 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020023223", name: "ภาษาและวัฒนธรรมเพื่อวิชาชีพครู", englishName: "Language and Cultures for Teaching Profession", units: "3(3-0-6)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023225", name: "วิธีการสอนอาชีวศึกษา", englishName: "Teaching Methods in Vocational Education", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1" }] },
+                    { id: "020253006*", name: "สนามแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Fields", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [{ id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics" }], subsequentCourses: [{ id: "020253311*", name: "คลื่นแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Wave" }] },
+                    { id: "020253007", name: "ระบบควบคุม", englishName: "Control Systems", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253016", name: "ปฏิบัติการระบบควบคุม", englishName: "Control System Laboratory" }] },
+                    { id: "020253022*", name: "สัญญาณและระบบ", englishName: "Signal and System", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics" }], subsequentCourses: [{ id: "020253310*", name: "หลักการการสื่อสาร", englishName: "Principles of Communications" }] },
+                    { id: "020253023*", name: "ระบบสมองกลฝังตัวและอินเทอร์เน็ตสรรพสิ่ง", englishName: "Embedded System and IoT", units: "3(2-2-5)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253425", name: "การออกแบบวงจรรวมและประยุกต์ใช้งานวงจรรวมลอจิกและดิจิทัล", englishName: "Digital and Logic Integrated Circuit Design and Application" }] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชาภาษา", englishName: "Language Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 3, Semester 1
+            {
+                title: "ปี 3 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020023224", name: "จิตวิทยาการศึกษา", englishName: "Education Psychology", units: "3(3-0-6)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1", units: "3(1-4-4)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "020023225", name: "วิธีการสอนอาชีวศึกษา", englishName: "Teaching Methods in Vocational Education" }, { id: "020023227", name: "นวัตกรรมและสื่อดิจิทัลเพื่อการเรียนการสอน", englishName: "Innovations and Digital Instructional Media" }], subsequentCourses: [{ id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II" }] },
+                    { id: "020253016", name: "ปฏิบัติการระบบควบคุม", englishName: "Control System Laboratory", units: "1(0-3-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253007", name: "ระบบควบคุม", englishName: "Control Systems" }], subsequentCourses: [] },
+                    { id: "020253020*", name: "การแปลงรูปพลังงานไฟฟ้าเชิงกล", englishName: "Electromechanical Energy Conversion", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253110", name: "การออกแบบระบบไฟฟ้า", englishName: "Electrical System Design", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253111", name: "การแปลงรูปกำลังไฟฟ้า", englishName: "Electrical Power Conversion", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชาภาษา", englishName: "Language Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 3, Semester 2
+            {
+                title: "ปี 3 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020023229", name: "การจัดการคุณภาพการศึกษา", englishName: "Educational Quality Management", units: "2(2-0-4)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II", units: "3(0-6-3)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1" }, { id: "020023228", name: "การวัดและการประเมินผลการศึกษา", englishName: "Educational Measurement and Evaluation" }], subsequentCourses: [{ id: "020023232", name: "ฝึกปฏิบัติการสอน 3", englishName: "Teaching Practice III" }] },
+                    { id: "020253112", name: "การอนุรักษ์และการจัดการพลังงาน", englishName: "Energy Conservation and Management", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253113*", name: "การผลิต ส่งจ่าย จำหน่าย และการใช้งานของกำลังไฟฟ้า", englishName: "Electrical Power Generation, Transmission, Distribution and Applications", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253114*", name: "การกักเก็บพลังงาน", englishName: "Energy Storage", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253119", name: "ปฏิบัติการการแปลงรูปพลังงานไฟฟ้าเชิงกล", englishName: "Electromechanical Energy Conversion Laboratory", units: "1(0-3-1)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชาบูรณาการ", englishName: "Integrated Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX", name: "วิชาเลือกในกลุ่มวิชาสังคมศาสตร์และมนุษยศาสตร์", englishName: "Social Sciences and Humanities Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 4, Semester 1
+            {
+                title: "ปี 4 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020023222", name: "ปรัชญาการศึกษาและการพัฒนาหลักสูตรอาชีวศึกษาและฝึกอบรม", englishName: "Education Philosophy and Vocational Curriculum and Training Courses Development", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023226*", name: "การวิจัยทางการศึกษา", englishName: "Educational Research", units: "3(2-2-5)", type: "major", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023232", name: "ฝึกปฏิบัติการสอน 3", englishName: "Teaching Practice III", units: "3(0-6-3)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II" }], subsequentCourses: [{ id: "020213113", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 1", englishName: "Teaching Practice in Electrical Engineering I" }] },
+                    { id: "020253018", name: "โครงงานพิเศษ", englishName: "Special Project", units: "1(0-3-1)", type: "practice", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253115*", name: "ระบบไฟฟ้ากำลัง", englishName: "Electric Power System", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253116", name: "ระบบควบคุมอัตโนมัติสมัยใหม่", englishName: "Modern Automatic Control System", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253117", name: "ระบบโครงข่ายไฟฟ้ากำลังสมัยใหม่", englishName: "Modern Power Grid", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX", name: "วิชาเลือกในกลุ่มวิชาสังคมศาสตร์และมนุษยศาสตร์", englishName: "Social Sciences and Humanities Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 4, Semester 2
+            {
+                title: "ปี 4 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020253118*", name: "การป้องกันระบบไฟฟ้ากำลัง", englishName: "Power System Protection", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253120", name: "ปฏิบัติการการป้องกันระบบไฟฟ้ากำลัง", englishName: "Power System Protection Laboratory", units: "1(0-3-1)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253121", name: "ปฏิบัติการระบบควบคุมอัตโนมัติสมัยใหม่", englishName: "Modern Automatic Control System Laboratory", units: "1(0-3-1)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "0202532xx", name: "วิชาเลือกเฉพาะแขนงระบบไฟฟ้ากำลังและระบบควบคุม", englishName: "Power System and Control System Engineering Elective Course", units: "3(x-x-x)", type: "major_elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX_free1", name: "วิชาเลือกเสรี", englishName: "Free Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX_free2", name: "วิชาเลือกเสรี", englishName: "Free Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX", name: "วิชาเลือกในกลุ่มวิชาสังคมศาสตร์และมนุษยศาสตร์", englishName: "Social Sciences and Humanities Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 5, Semester 1
+            {
+                title: "ปี 5 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020213113", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 1", englishName: "Teaching Practice in Electrical Engineering I", units: "6(540 ชั่วโมง)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020023232", name: "ฝึกปฏิบัติการสอน 3", englishName: "Teaching Practice III" }], subsequentCourses: [{ id: "020213114", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 2", englishName: "Teaching Practice in Electrical Engineering II" }] }
+                ]
+            },
+            // Year 5, Semester 2
+            {
+                title: "ปี 5 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020213114", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 2", englishName: "Teaching Practice in Electrical Engineering II", units: "6(540 ชั่วโมง)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020213113", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 1", englishName: "Teaching Practice in Electrical Engineering I" }], subsequentCourses: [] }
+                ]
+            }
+        ];
+
+        // Data for Electronics and Telecommunication Engineering Branch
+        const electronicsTelecomCurriculum = [
+             // Year 1, Semester 1
+            {
+                title: "ปี 1 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020023221", name: "หลักวิชาชีพครู", englishName: "Teaching Profession", units: "3(3-0-6)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253001*", name: "การเขียนแบบวิศวกรรม", englishName: "Engineering Drawing", units: "3(2-2-5)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253008", name: "การวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253009", name: "ปฏิบัติการวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement Laboratory" }] },
+                    { id: "040113001", name: "เคมีสำหรับวิศวกร", englishName: "Chemistry for Engineers", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040113002", name: "ปฏิบัติการเคมีสำหรับวิศวกร", englishName: "Chemistry Laboratory for Engineers" }] },
+                    { id: "040313005", name: "ฟิสิกส์ 1", englishName: "Physics 1", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040313006", name: "ปฏิบัติการฟิสิกส์ 1", englishName: "Physics Laboratory 1" }] },
+                    { id: "040313006", name: "ปฏิบัติการฟิสิกส์ 1", englishName: "Physics Laboratory 1", units: "1(0-2-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040313005", name: "ฟิสิกส์ 1", englishName: "Physics 1" }], subsequentCourses: [] },
+                    { id: "040203111", name: "คณิตศาสตร์วิศวกรรม 1", englishName: "Engineering Mathematics I", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [{ id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II" }] },
+                    { id: "080103001", name: "ภาษาอังกฤษ 1", englishName: "English 1", units: "3(3-0-6)", type: "general", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [{ id: "080103002", name: "ภาษาอังกฤษ 2", englishName: "English II" }] }
+                ]
+            },
+            // Year 1, Semester 2
+            {
+                title: "ปี 1 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020023228", name: "การวัดและการประเมินผลการศึกษา", englishName: "Educational Measurement and Evaluation", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [{ id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II" }] },
+                    { id: "020003101", name: "คอมพิวเตอร์เพื่อการศึกษาเบื้องต้น", englishName: "Basic Computer for Education", units: "1(1-1-2)", type: "general", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253009", name: "ปฏิบัติการวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement Laboratory", units: "1(0-3-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253008", name: "การวัดและเครื่องมือวัดทางไฟฟ้า", englishName: "Electrical Instrumentation and Measurement" }], subsequentCourses: [] },
+                    { id: "020253013", name: "ปฏิบัติงานวิศวกรรมไฟฟ้าเบื้องต้น", englishName: "Basic Electrical Engineering Practice", units: "3(0-6-3)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253021", name: "เทคโนโลยีการสื่อสาร", englishName: "Communication Technology", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253424", name: "การสื่อสารข้อมูลและเครือข่ายคอมพิวเตอร์", englishName: "Data Communication and Computer Networks" }] },
+                    { id: "040113002", name: "ปฏิบัติการเคมีสำหรับวิศวกร", englishName: "Chemistry Laboratory for Engineers", units: "1(0-3-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "040113001", name: "เคมีสำหรับวิศวกร", englishName: "Chemistry for Engineers" }], subsequentCourses: [] },
+                    { id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "040203111", name: "คณิตศาสตร์วิศวกรรม 1", englishName: "Engineering Mathematics I" }], subsequentCourses: [{ id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics" }, { id: "020253004*", name: "วงจรไฟฟ้า", englishName: "Electric Circuits" }] },
+                    { id: "080103002", name: "ภาษาอังกฤษ 2", englishName: "English II", units: "3(3-0-6)", type: "general", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "080103001", name: "ภาษาอังกฤษ 1", englishName: "English 1" }], subsequentCourses: [] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชากีฬาและนันทนาการ", englishName: "Sport and Recreation Elective Course", units: "1(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 2, Semester 1
+            {
+                title: "ปี 2 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020003103*", name: "คอมพิวเตอร์และการโปรแกรม", englishName: "Computer and Programming", units: "3(2-2-5)", type: "general", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023227", name: "นวัตกรรมและสื่อดิจิทัลเพื่อการเรียนการสอน", englishName: "Innovations and Digital Instructional Media", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1" }] },
+                    { id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II" }], subsequentCourses: [{ id: "020253006*", name: "สนามแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Fields" }, { id: "020253022*", name: "สัญญาณและระบบ", englishName: "Signal and System" }] },
+                    { id: "020253002", name: "กลศาสตร์วิศวกรรม", englishName: "Engineering Mechanics", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253003", name: "วัสดุวิศวกรรม", englishName: "Engineering Materials", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253004*", name: "วงจรไฟฟ้า", englishName: "Electric Circuits", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [{ id: "040203112", name: "คณิตศาสตร์วิศวกรรม 2", englishName: "Engineering Mathematics II" }], subsequentCourses: [] },
+                    { id: "020253019*", name: "อุปกรณ์อิเล็กทรอนิกส์และวงจรแอนะล็อก", englishName: "Electronic Devices and Analog Circuits", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253418", name: "วิศวกรรมอิเล็กทรอนิกส์ขั้นสูง", englishName: "Advanced Electronic Engineering" }, { id: "020253419", name: "การออกแบบวงจรอิเล็กทรอนิกส์", englishName: "Electronic Circuit Design" }] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชากีฬาและนันทนาการ", englishName: "Sport and Recreation Elective Course", units: "1(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 2, Semester 2
+            {
+                title: "ปี 2 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020023223", name: "ภาษาและวัฒนธรรมเพื่อวิชาชีพครู", englishName: "Language and Cultures for Teaching Profession", units: "3(3-0-6)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023225", name: "วิธีการสอนอาชีวศึกษา", englishName: "Teaching Methods in Vocational Education", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1" }] },
+                    { id: "020253006*", name: "สนามแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Fields", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [{ id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics" }], subsequentCourses: [{ id: "020253311*", name: "คลื่นแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Wave" }] },
+                    { id: "020253007", name: "ระบบควบคุม", englishName: "Control Systems", units: "3(3-0-6)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253016", name: "ปฏิบัติการระบบควบคุม", englishName: "Control System Laboratory" }] },
+                    { id: "020253022*", name: "สัญญาณและระบบ", englishName: "Signal and System", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253000", name: "คณิตศาสตร์วิศวกรรมไฟฟ้า", englishName: "Electrical Engineering Mathematics" }], subsequentCourses: [{ id: "020253310*", name: "หลักการการสื่อสาร", englishName: "Principles of Communications" }] },
+                    { id: "020253023*", name: "ระบบสมองกลฝังตัวและอินเทอร์เน็ตสรรพสิ่ง", englishName: "Embedded System and IoT", units: "3(2-2-5)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [{ id: "020253425", name: "การออกแบบวงจรรวมและประยุกต์ใช้งานวงจรรวมลอจิกและดิจิทัล", englishName: "Digital and Logic Integrated Circuit Design and Application" }] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชาภาษา", englishName: "Language Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 3, Semester 1
+            {
+                title: "ปี 3 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020023224", name: "จิตวิทยาการศึกษา", englishName: "Education Psychology", units: "3(3-0-6)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1", units: "3(1-4-4)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "020023225", name: "วิธีการสอนอาชีวศึกษา", englishName: "Teaching Methods in Vocational Education" }, { id: "020023227", name: "นวัตกรรมและสื่อดิจิทัลเพื่อการเรียนการสอน", englishName: "Innovations and Digital Instructional Media" }], subsequentCourses: [{ id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II" }] },
+                    { id: "020253016", name: "ปฏิบัติการระบบควบคุม", englishName: "Control System Laboratory", units: "1(0-3-1)", type: "core", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253007", name: "ระบบควบคุม", englishName: "Control Systems" }], subsequentCourses: [] },
+                    { id: "020253020*", name: "การแปลงรูปพลังงานไฟฟ้าเชิงกล", englishName: "Electromechanical Energy Conversion", units: "3(3-0-6)", type: "core", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253310*", name: "หลักการการสื่อสาร", englishName: "Principles of Communications", units: "3(2-2-5)", type: "major_elective", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253022*", name: "สัญญาณและระบบ", englishName: "Signal and System" }], subsequentCourses: [{ id: "020253312", name: "ระบบการสื่อสารไร้สาย", englishName: "Wireless Communication System" }, { id: "020253315", name: "การสื่อสารแบบดิจิทัล", englishName: "Digital Communications" }] },
+                    { id: "020253311*", name: "คลื่นแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Wave", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253006*", name: "สนามแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Fields" }], subsequentCourses: [{ id: "020253313*", name: "วิศวกรรมไมโครเวฟ", englishName: "Microwave Engineering" }, { id: "020253316*", name: "วิศวกรรมสายอากาศ", englishName: "Antenna Engineering" }, { id: "020253415", name: "การสื่อสารดาวเทียมและเส้นใยนำแสง", englishName: "Satellite and Fiber Optic Communication" }, { id: "020253416", name: "ระบบการส่งวิทยุและการสื่อสารเคลื่อนที่", englishName: "Radio Transmission and Mobile Communication System" }] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชาภาษา", englishName: "Language Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 3, Semester 2
+            {
+                title: "ปี 3 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020023229", name: "การจัดการคุณภาพการศึกษา", englishName: "Educational Quality Management", units: "2(2-0-4)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II", units: "3(0-6-3)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "020023230", name: "ฝึกปฏิบัติการสอน 1", englishName: "Teaching Practice 1" }, { id: "020023228", name: "การวัดและการประเมินผลการศึกษา", englishName: "Educational Measurement and Evaluation" }], subsequentCourses: [{ id: "020023232", name: "ฝึกปฏิบัติการสอน 3", englishName: "Teaching Practice III" }] },
+                    { id: "020253312", name: "ระบบการสื่อสารไร้สาย", englishName: "Wireless Communication System", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, prerequisites: [{ id: "020253310*", name: "หลักการการสื่อสาร", englishName: "Principles of Communications" }], subsequentCourses: [] },
+                    { id: "020253313*", name: "วิศวกรรมไมโครเวฟ", englishName: "Microwave Engineering", units: "3(2-2-5)", type: "major_elective", isEnglishTaught: true, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253311*", name: "คลื่นแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Wave" }], subsequentCourses: [] },
+                    { id: "020253314", name: "คอมพิวเตอร์วิทัศน์และปัญญาประดิษฐ์", englishName: "Computer Vision and Artificial Intelligence", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "08XXXXXXX", name: "วิชาเลือกในกลุ่มวิชาบูรณาการ", englishName: "Integrated Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX", name: "วิชาเลือกในกลุ่มวิชาสังคมศาสตร์และมนุษยศาสตร์", englishName: "Social Sciences and Humanities Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 4, Semester 1
+            {
+                title: "ปี 4 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020023222", name: "ปรัชญาการศึกษาและการพัฒนาหลักสูตรอาชีวศึกษาและฝึกอบรม", englishName: "Education Philosophy and Vocational Curriculum and Training Courses Development", units: "3(2-2-5)", type: "major", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023226*", name: "การวิจัยทางการศึกษา", englishName: "Educational Research", units: "3(2-2-5)", type: "major", isEnglishTaught: true, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] },
+                    { id: "020023232", name: "ฝึกปฏิบัติการสอน 3", englishName: "Teaching Practice III", units: "3(0-6-3)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [{ id: "020023231", name: "ฝึกปฏิบัติการสอน 2", englishName: "Teaching Practice II" }], subsequentCourses: [] },
+                    { id: "020253018", name: "โครงงานพิเศษ", englishName: "Special Project", units: "1(0-3-1)", type: "practice", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "020253315", name: "การสื่อสารแบบดิจิทัล", englishName: "Digital Communications", units: "3(2-2-5)", type: "major_elective", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020253310*", name: "หลักการการสื่อสาร", englishName: "Principles of Communications" }], subsequentCourses: [] },
+                    { id: "020253316*", name: "วิศวกรรมสายอากาศ", englishName: "Antenna Engineering", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: true, prerequisites: [{ id: "020253311*", name: "คลื่นแม่เหล็กไฟฟ้า", englishName: "Electromagnetic Wave" }], subsequentCourses: [] },
+                    { id: "020253317", name: "อิเล็กทรอนิกส์สื่อสาร", englishName: "Communication Electronics", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX", name: "วิชาเลือกในกลุ่มวิชาสังคมศาสตร์และมนุษยศาสตร์", englishName: "Social Sciences and Humanities Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 4, Semester 2
+            {
+                title: "ปี 4 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020253318", name: "เครือข่ายโทรคมนาคมและสารสนเทศ", englishName: "Communication and Information Networks", units: "3(2-2-5)", type: "major_elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [{ id: "020253424", name: "การสื่อสารข้อมูลและเครือข่ายคอมพิวเตอร์", englishName: "Data Communication and Computer Networks" }] },
+                    { id: "020253319", name: "การบริหารระบบไฟฟ้าสำหรับสถานีสื่อสารโทรคมนาคม", englishName: "Electrical System Management for Telecommunication Station", units: "3(3-0-6)", type: "major_elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "0202534xx", name: "วิชาเลือกเฉพาะแขนง", englishName: "Major Elective Course", units: "3(x-x-x)", type: "major_elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX_free1", name: "วิชาเลือกเสรี", englishName: "Free Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX_free2", name: "วิชาเลือกเสรี", englishName: "Free Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, prerequisites: [], subsequentCourses: [] },
+                    { id: "XXXXXXXXX", name: "วิชาเลือกในกลุ่มวิชาสังคมศาสตร์และมนุษยศาสตร์", englishName: "Social Sciences and Humanities Elective Course", units: "3(x-x-x)", type: "elective", isEnglishTaught: false, isUserPreviouslyStudied: true, prerequisites: [], subsequentCourses: [] }
+                ]
+            },
+            // Year 5, Semester 1
+            {
+                title: "ปี 5 ภาคการศึกษาที่ 1",
+                courses: [
+                    { id: "020213113", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 1", englishName: "Teaching Practice in Electrical Engineering I", units: "6(540 ชั่วโมง)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020023232", name: "ฝึกปฏิบัติการสอน 3", englishName: "Teaching Practice III" }], subsequentCourses: [] }
+                ]
+            },
+            // Year 5, Semester 2
+            {
+                title: "ปี 5 ภาคการศึกษาที่ 2",
+                courses: [
+                    { id: "020213114", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 2", englishName: "Teaching Practice in Electrical Engineering II", units: "6(540 ชั่วโมง)", type: "practice", isEnglishTaught: false, isUserPreviouslyStudied: false, prerequisites: [{ id: "020213113", name: "ปฏิบัติการสอนด้านวิศวกรรมไฟฟ้าในสถานศึกษา 1", englishName: "Teaching Practice in Electrical Engineering I" }], subsequentCourses: [] }
+                ]
+            }
+        ];
+
+        let currentCurriculumData = [];
+        let currentSemesterIndex = 0;
+        let currentBranchName = "";
+
+        // Get DOM elements
+        const branchSelection = document.getElementById('branchSelection');
+        const curriculumDisplayArea = document.getElementById('curriculumDisplayArea');
+        const powerSystemBtn = document.getElementById('powerSystemBtn');
+        const electronicsTelecomBtn = document.getElementById('electronicsTelecomBtn');
+        const backToBranchBtn = document.getElementById('backToBranchBtn'); 
+        const backToMainIndexBtn = document.getElementById('backToMainIndexBtn');
+
+        const mainCurriculumTitle = document.getElementById('mainCurriculumTitle');
+        const semesterDisplay = document.getElementById('semesterDisplay');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const semesterSelect = document.getElementById('semesterSelect');
+
+        const courseModal = document.getElementById('courseModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalCourseTitle = document.getElementById('modalCourseTitle');
+        const modalCourseEnglishTitle = document.getElementById('modalCourseEnglishTitle');
+        const modalCourseUnits = document.getElementById('modalCourseUnits');
+        const prereqList = document.getElementById('prereqList');
+        const noPrereqs = document.getElementById('noPrereqs');
+        const subsequentList = document.getElementById('subsequentList');
+        const noSubsequent = document.getElementById('noSubsequent');
+
+        function populateSemesterSelect() {
+            semesterSelect.innerHTML = '';
+            currentCurriculumData.forEach((semester, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = semester.title;
+                semesterSelect.appendChild(option);
+            });
+        }
+
+        function renderSemester(index) {
+            const semester = currentCurriculumData[index];
+            if (!semester) return;
+
+            semesterDisplay.innerHTML = '';
+
+            const semesterTitleElem = document.createElement('div');
+            semesterTitleElem.classList.add('semester-title');
+            semesterTitleElem.textContent = semester.title;
+            semesterDisplay.appendChild(semesterTitleElem);
+
+            semester.courses.forEach(course => {
+                const courseCardElem = document.createElement('div');
+                courseCardElem.classList.add('course-card', course.type);
+                if (course.isEnglishTaught) courseCardElem.classList.add('english-taught');
+                if (course.isUserPreviouslyStudied) courseCardElem.classList.add('previously-studied');
+                
+                courseCardElem.innerHTML = `
+                    ${course.id.replace('*','')} ${course.name} <br> <span class="text-gray-500 italic">${course.englishName}</span>
+                    <span class="unit-credit">หน่วยกิต: ${course.units}</span>
+                `;
+                courseCardElem.addEventListener('click', () => openCourseModal(course));
+                semesterDisplay.appendChild(courseCardElem);
+            });
+
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === currentCurriculumData.length - 1;
+            semesterSelect.value = index;
+        }
+
+        function openCourseModal(course) {
+            modalCourseTitle.textContent = `${course.id.replace('*','')} ${course.name}`;
+            modalCourseEnglishTitle.textContent = course.englishName;
+            modalCourseUnits.textContent = `หน่วยกิต: ${course.units}`;
+
+            prereqList.innerHTML = '';
+            if (course.prerequisites && course.prerequisites.length > 0) {
+                noPrereqs.classList.add('hidden');
+                prereqList.style.display = 'block';
+                course.prerequisites.forEach(prereq => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${prereq.id.replace('*','')} ${prereq.name} (${prereq.englishName})`;
+                    prereqList.appendChild(listItem);
+                });
+            } else {
+                noPrereqs.classList.remove('hidden');
+                prereqList.style.display = 'none';
+            }
+
+            subsequentList.innerHTML = '';
+            if (course.subsequentCourses && course.subsequentCourses.length > 0) {
+                noSubsequent.classList.add('hidden');
+                subsequentList.style.display = 'block';
+                course.subsequentCourses.forEach(subsequent => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${subsequent.id.replace('*','')} ${subsequent.name} (${subsequent.englishName})`;
+                    subsequentList.appendChild(listItem);
+                });
+            } else {
+                noSubsequent.classList.remove('hidden');
+                subsequentList.style.display = 'none';
+            }
+
+            courseModal.classList.remove('hidden');
+        }
+
+        function closeCourseModal() {
+            courseModal.classList.add('hidden');
+        }
+
+        function loadCurriculum(branchData, branchDisplayName) {
+            currentCurriculumData = branchData;
+            currentBranchName = branchDisplayName;
+            currentSemesterIndex = 0;
+
+            mainCurriculumTitle.textContent = `แผนการเรียนครุศาสตร์อุตสาหกรรมบัณฑิต สาขาวิชาวิศวกรรมไฟฟ้าและการศึกษา (5 ปี) แขนงวิชา${currentBranchName}`;
+
+            populateSemesterSelect();
+            renderSemester(currentSemesterIndex);
+
+            branchSelection.style.display = 'none';
+            curriculumDisplayArea.style.display = 'flex';
+        }
+
+        function backToBranchSelection() {
+            curriculumDisplayArea.style.display = 'none';
+            branchSelection.style.display = 'flex';
+        }
+
+        powerSystemBtn.addEventListener('click', () => {
+            loadCurriculum(powerSystemCurriculum, "วิศวกรรมระบบไฟฟ้ากำลังและระบบควบคุม");
+        });
+
+        electronicsTelecomBtn.addEventListener('click', () => {
+            loadCurriculum(electronicsTelecomCurriculum, "วิศวกรรมอิเล็กทรอนิกส์และโทรคมนาคม");
+        });
+
+        backToBranchBtn.addEventListener('click', backToBranchSelection);
+
+        backToMainIndexBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSemesterIndex > 0) renderSemester(--currentSemesterIndex);
+        });
+        nextBtn.addEventListener('click', () => {
+            if (currentSemesterIndex < currentCurriculumData.length - 1) renderSemester(++currentSemesterIndex);
+        });
+        semesterSelect.addEventListener('change', (e) => {
+            currentSemesterIndex = parseInt(e.target.value);
+            renderSemester(currentSemesterIndex);
+        });
+
+        closeModalBtn.addEventListener('click', closeCourseModal);
+        courseModal.addEventListener('click', (e) => {
+            if (e.target === courseModal) closeCourseModal();
+        });
+
+    </script>
+</body>
+</html>
