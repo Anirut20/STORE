@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการพัสดุและอุปกรณ์ (Google Sheet)</title>
+    <title>ระบบจัดการพัสดุและอุปกรณ์</title>
     <style>
+        /* CSS เดิมส่วนใหญ่ยังคงเหมือนเดิม */
         body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
         .container { width: 100%; max-width: 900px; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 0 auto; }
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
@@ -15,7 +16,10 @@
         #login-section button { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
         #app-section { display: none; }
         h1, h2 { color: #0056b3; text-align: center; }
-        #scanner-container { width: 100%; max-width: 500px; margin: 20px auto; border: 2px solid #ddd; border-radius: 8px; overflow: hidden; }
+        #scanner-container { width: 100%; max-width: 500px; margin: 10px auto; border: 2px solid #ddd; border-radius: 8px; overflow: hidden; }
+        #manual-entry-section { text-align: center; margin: 20px auto; padding: 15px; background: #eef; border-radius: 8px; max-width: 500px; }
+        #manual-id-input { padding: 10px; font-size: 16px; width: 60%; border: 1px solid #ccc; border-radius: 4px; }
+        #manual-id-btn { padding: 10px 15px; font-size: 16px; cursor: pointer; }
         #manual-add-section { margin: 30px 0; padding: 20px; background-color: #f9f9f9; border: 1px solid #eee; border-radius: 8px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center; }
         .form-grid-full { grid-column: 1 / -1; text-align: center; }
@@ -27,15 +31,16 @@
         .category-toggle::after { content: '▶'; font-size: 12px; transition: transform 0.3s; }
         .category-toggle.active::after { transform: rotate(90deg); }
         .items-in-category { padding: 0; background-color: white; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; border: 1px solid #ddd; border-top: none; border-radius: 0 0 5px 5px; }
-        .item-row { padding: 12px 15px; border-bottom: 1px solid #eee; display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; cursor: pointer; align-items: center; }
+        .item-row { padding: 12px 15px; border-bottom: 1px solid #eee; display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 10px; cursor: pointer; align-items: center; }
         .item-row:last-child { border-bottom: none; }
         .item-row:hover { background-color: #f5f5f5; }
         .item-details { font-size: 14px; color: #555; }
         .item-name { font-weight: bold; }
+        .borrower-details { font-size: 0.9em; color: #d9534f; font-style: italic; }
         .status-in { color: green; font-weight: bold; }
         .status-out { color: red; font-weight: bold; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fefefe; margin: 8% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 700px; border-radius: 8px; position: relative; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 700px; border-radius: 8px; position: relative; }
         .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
         .close-button:hover { color: black; }
         #borrow-modal .form-field { margin-bottom: 15px; }
@@ -50,47 +55,87 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; word-break: break-word; }
         th { background-color: #007bff; color: white; }
+        #receipt-modal-body { font-size: 16px; line-height: 1.6; color: #333; }
+        #receipt-modal-body .receipt-header { text-align: center; margin-bottom: 20px; }
+        #receipt-modal-body .receipt-header h3 { font-size: 1.8em; font-weight: bold; color: #0056b3; margin-bottom: 5px;}
+        #receipt-modal-body .receipt-header h4 { font-size: 1.1em; font-weight: normal; color: #444; margin-top:15px; }
+        #receipt-modal-body .receipt-info p { margin: 4px 0; }
+        #receipt-modal-body hr { margin: 20px 0; border-top: 1px solid #ccc; }
+        #receipt-modal-body .details-section { margin-top: 15px; }
+        #receipt-modal-body .details-section h4 { font-size: 1.2em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 10px; }
+        #receipt-modal-body .details-section p { margin-left: 15px; }
+        #receipt-modal-body .signatures { margin-top: 50px; display: flex; justify-content: space-around; text-align: center; }
+        #receipt-modal-body .signatures div { width: 40%; }
+        #receipt-modal-body .signatures .line { border-bottom: 1px solid #333; margin-bottom: 8px; }
+        #receipt-modal-footer { text-align: right; margin-top: 25px; padding-top:15px; border-top: 1px solid #eee; }
+        
+        /* --- ขั้นตอนที่ 2: เพิ่ม CSS สำหรับเส้นประคั่นกลาง --- */
+        .receipt-separator {
+            border: none;
+            border-top: 2px dashed #999;
+            margin: 40px 5px;
+        }
+
+        @media print {
+            body > *:not(#receipt-modal) { display: none; }
+            #receipt-modal {
+                position: absolute; left: 0; top: 0; width: 100%; height: auto;
+                overflow: visible !important; background: white;
+            }
+            .modal-content {
+                box-shadow: none; border: none; margin: 0; padding: 0;
+            }
+            #receipt-modal .close-button, #receipt-modal-footer {
+                display: none !important;
+            }
+            /* ลดขนาดตัวอักษรเล็กน้อยเพื่อให้พอดีกับหน้ากระดาษ */
+            #receipt-modal-body { font-size: 12px; }
+            #receipt-modal-body .receipt-header h3 { font-size: 1.5em; }
+            #receipt-modal-body .receipt-header h4 { font-size: 1em; }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="loading-overlay" id="loading-indicator">
-        <p>กำลังโหลดข้อมูล...</p>
-    </div>
+    <div class="loading-overlay" id="loading-indicator"><p>กำลังโหลดข้อมูล...</p></div>
 
     <div class="container">
         <div id="login-section">
-            <h1>ระบบจัดการพัสดุ</h1>
-            <p>กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
-            <input type="password" id="password-input" placeholder="รหัสผ่าน">
-            <button onclick="checkPassword()">เข้าสู่ระบบ</button>
+             <h1>ระบบจัดการพัสดุ</h1>
+             <p>กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
+             <input type="password" id="password-input" placeholder="รหัสผ่าน">
+             <button onclick="checkPassword()">เข้าสู่ระบบ</button>
         </div>
-
         <div id="app-section">
-            <h1>ระบบจัดการพัสดุและอุปกรณ์</h1>
-            <div id="scanner-container"></div>
-            <div id="manual-add-section">
-                <h2>เพิ่ม/ลงทะเบียนอุปกรณ์ใหม่</h2>
-                <form id="add-item-form">
-                    <div class="form-grid">
-                        <div><label for="new-item-id-input">รหัสอุปกรณ์ (จาก QR/Barcode)</label><input type="text" id="new-item-id-input" required></div>
-                        <div><label for="new-item-name-input">ชื่ออุปกรณ์</label><input type="text" id="new-item-name-input" required></div>
-                        <div><label for="new-item-category-select">หมวดหมู่</label><select id="new-item-category-select" required><option value="" disabled selected>-- เลือกหมวดหมู่ --</option><option value="ขบวน">ขบวน</option><option value="ศิลปะ">ศิลปะ</option><option value="กีฬา">กีฬา</option><option value="เรือ">เรือ</option><option value="สำนักงาน">สำนักงาน</option><option value="เบ็ดเตล็ด">เบ็ดเตล็ด</option></select></div>
-                        <div class="form-grid-full"><button type="submit">เพิ่มอุปกรณ์ใหม่</button></div>
-                    </div>
-                </form>
-            </div>
-            <h2>รายการอุปกรณ์ทั้งหมด (สต๊อก)</h2>
-            <div id="items-list-container"></div>
-            <h2>ประวัติการทำรายการทั้งหมด</h2>
-            <table id="history-table">
-                <thead>
-                    <tr><th>วัน-เวลา</th><th>อุปกรณ์</th><th>ผู้ยืม</th><th>รายการ</th><th>เจ้าหน้าที่</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+             <h1>ระบบจัดการพัสดุและอุปกรณ์</h1>
+             <div id="scanner-container"></div>
+             <div id="manual-entry-section">
+                 <label for="manual-id-input">หรือกรอกรหัสอุปกรณ์:</label><br>
+                 <input type="text" id="manual-id-input" placeholder="พิมพ์รหัสแล้วกดตรวจสอบ">
+                 <button id="manual-id-btn">ตรวจสอบ</button>
+             </div>
+             <div id="manual-add-section">
+                 <h2>เพิ่ม/ลงทะเบียนอุปกรณ์ใหม่</h2>
+                 <form id="add-item-form">
+                     <div class="form-grid">
+                         <div><label for="new-item-id-input">รหัสอุปกรณ์ (จาก QR/Barcode)</label><input type="text" id="new-item-id-input" required></div>
+                         <div><label for="new-item-name-input">ชื่ออุปกรณ์</label><input type="text" id="new-item-name-input" required></div>
+                         <div><label for="new-item-category-select">หมวดหมู่</label><select id="new-item-category-select" required><option value="" disabled selected>-- เลือกหมวดหมู่ --</option><option value="ขบวน">ขบวน</option><option value="ศิลปะ">ศิลปะ</option><option value="กีฬา">กีฬา</option><option value="เรือ">เรือ</option><option value="สำนักงาน">สำนักงาน</option><option value="เบ็ดเตล็ด">เบ็ดเตล็ด</option></select></div>
+                         <div class="form-grid-full"><button type="submit">เพิ่มอุปกรณ์ใหม่</button></div>
+                     </div>
+                 </form>
+             </div>
+             <h2>รายการอุปกรณ์ทั้งหมด (สต๊อก)</h2>
+             <div id="items-list-container"></div>
+             <h2>ประวัติการทำรายการทั้งหมด</h2>
+             <table id="history-table">
+                 <thead>
+                     <tr><th>วัน-เวลา</th><th>อุปกรณ์</th><th>ผู้ยืม</th><th>รายการ</th><th>เจ้าหน้าที่</th></tr>
+                 </thead>
+                 <tbody></tbody>
+             </table>
         </div>
     </div>
 
@@ -135,13 +180,88 @@
         </div>
     </div>
 
+    <div id="receipt-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('receipt-modal').style.display='none'">&times;</span>
+            <div id="receipt-modal-body">
+            </div>
+            <div id="receipt-modal-footer">
+                <button onclick="document.getElementById('receipt-modal').style.display='none'" style="background-color: #6c757d; color: white; padding: 10px 20px; border:none; border-radius: 4px; cursor:pointer;">ปิด</button>
+                <button onclick="printReceipt()" style="background-color: #007bff; color: white; padding: 10px 20px; border:none; border-radius: 4px; cursor:pointer; margin-left:10px;">พิมพ์ใบเสร็จ</button>
+            </div>
+        </div>
+    </div>
+
+
     <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
     <script>
-        // ######################################################################
-        // ##  URL ของคุณถูกอัปเดตที่นี่แล้ว                                    ##
-        // ######################################################################
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzg6ar6r0aQ6EyS-aqRj9jPih0hi2tZdGld7E0PHYIPKaNR4D5UDh7aksSKesXuRuTDJg/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzg6ar6r0aQ6EyS-aqRj9jPih0hi2tZdGld7E0PHYIPKaNR4D5UDh7aksSKesXuRuTDJg/exec";
+        // โค้ดส่วนบนๆ ยังคงเหมือนเดิม...
 
+        /**
+         * --- ขั้นตอนที่ 1: ปรับปรุงฟังก์ชัน showReceiptModal ---
+         * เราจะสร้างฟังก์ชัน renderSingleReceipt เพื่อใช้ซ้ำ
+         * แล้วเรียกใช้ 2 ครั้งสำหรับ "ผู้ยืม" และ "เจ้าหน้าที่"
+        */
+        function renderSingleReceipt(details, copyFor) {
+            // copyFor คือข้อความที่จะบอกว่าเป็นฉบับของใคร เช่น "ฉบับสำหรับผู้ยืม"
+            return `
+                <div class="receipt-instance">
+                    <div class="receipt-header">
+                        <h3>หลักฐานการ${details.transactionType}พัสดุ</h3>
+                        <h4>${copyFor}</h4>
+                    </div>
+                    <div class="receipt-info">
+                        <p><strong>วันที่ทำรายการ:</strong> ${details.timestamp}</p>
+                    </div>
+                    <hr>
+                    <div class="details-section">
+                        <h4>ข้อมูลพัสดุ</h4>
+                        <p><strong>ชื่อ:</strong> ${details.itemName}</p>
+                        <p><strong>รหัส:</strong> ${details.itemId}</p>
+                    </div>
+                    <div class="details-section">
+                        <h4>ข้อมูลผู้ทำรายการ</h4>
+                        <p><strong>ผู้${details.transactionType}:</strong> ${details.borrowerName} (${details.borrowerId})</p>
+                        <p><strong>เจ้าหน้าที่ผู้ดำเนินการ:</strong> ${details.staffName}</p>
+                    </div>
+                    <div class="signatures">
+                        <div>
+                            <p class="line"></p>
+                            <p>( ${details.borrowerName} )</p>
+                            <p>ผู้${details.transactionType}</p>
+                        </div>
+                        <div>
+                            <p class="line"></p>
+                            <p>( ${details.staffName} )</p>
+                            <p>เจ้าหน้าที่</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showReceiptModal(details) {
+            const modalBody = document.getElementById('receipt-modal-body');
+            
+            // สร้างใบเสร็จชุดแรกสำหรับผู้ยืม
+            const receiptForBorrower = renderSingleReceipt(details, "ฉบับสำหรับผู้ยืม");
+            
+            // สร้างใบเสร็จชุดที่สองสำหรับเจ้าหน้าที่
+            const receiptForStaff = renderSingleReceipt(details, "ฉบับสำหรับเจ้าหน้าที่");
+            
+            // นำทั้งสองส่วนมาต่อกันโดยมีเส้นประคั่นกลาง
+            const fullHtmlContent = receiptForBorrower + '<hr class="receipt-separator">' + receiptForStaff;
+            
+            modalBody.innerHTML = fullHtmlContent;
+            document.getElementById('receipt-modal').style.display = 'block';
+        }
+
+        function printReceipt() {
+            window.print();
+        }
+        
+        // --- โค้ดส่วนอื่นๆ ทั้งหมดเหมือนกับเวอร์ชันก่อนหน้า ---
         const categories = ["ขบวน", "ศิลปะ", "กีฬา", "เรือ", "สำนักงาน", "เบ็ดเตล็ด"];
         let db = { items: {}, history: [] }; 
         let studentIdScanner = null;
@@ -149,15 +269,8 @@
 
         const loadingIndicator = document.getElementById('loading-indicator');
 
-        function showLoading(message = "กำลังโหลด...") {
-            loadingIndicator.querySelector('p').textContent = message;
-            loadingIndicator.classList.add('active');
-        }
-
-        function hideLoading() {
-            loadingIndicator.classList.remove('active');
-        }
-
+        function showLoading(message = "กำลังโหลด...") { loadingIndicator.querySelector('p').textContent = message; loadingIndicator.classList.add('active'); }
+        function hideLoading() { loadingIndicator.classList.remove('active'); }
         async function fetchDataFromSheet() {
             showLoading("กำลังดึงข้อมูลล่าสุด...");
             try {
@@ -165,11 +278,7 @@
                 if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
                 const data = await response.json();
                 if(data.error) throw new Error(data.error);
-                
-                db.items = data.items.reduce((obj, item) => {
-                    obj[item.id] = item;
-                    return obj;
-                }, {});
+                db.items = data.items.reduce((obj, item) => { obj[item.id] = item; return obj; }, {});
                 db.history = data.history;
                 renderUI();
             } catch (error) {
@@ -178,106 +287,66 @@
                 hideLoading();
             }
         }
-
         async function updateSheetData(payload) {
             showLoading("กำลังบันทึกข้อมูล...");
             try {
                 const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    redirect: "follow",
-                    body: JSON.stringify(payload),
+                    method: 'POST', redirect: "follow", body: JSON.stringify(payload),
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                 });
                 if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
                 const result = await response.json();
                 if (result.status !== 'success') throw new Error(result.message);
-                
                 await fetchDataFromSheet();
+                return true;
             } catch (error) {
                 alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.message);
                 hideLoading();
+                return false;
             }
         }
-        
         function checkPassword() {
             if (document.getElementById('password-input').value === '2568') {
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('app-section').style.display = 'block';
                 initializeApp();
-            } else {
-                alert('รหัสผ่านไม่ถูกต้อง!');
-            }
+            } else { alert('รหัสผ่านไม่ถูกต้อง!'); }
         }
-
         async function initializeApp() {
             const historyModal = document.getElementById('history-modal');
             const borrowModal = document.getElementById('borrow-modal');
-            
+            const receiptModal = document.getElementById('receipt-modal');
             historyModal.querySelector('.history-modal-close-button').addEventListener('click', () => historyModal.style.display = 'none');
             document.getElementById('cancel-borrow-btn').addEventListener('click', () => {
-                if (studentIdScanner && studentIdScanner.isScanning) {
-                    studentIdScanner.stop();
-                }
+                if (studentIdScanner && studentIdScanner.isScanning) { studentIdScanner.stop(); }
                 borrowModal.style.display = 'none';
             });
-            
             window.onclick = (event) => {
                 if (event.target == historyModal) historyModal.style.display = 'none';
                 if (event.target == borrowModal) {
-                    if (studentIdScanner && studentIdScanner.isScanning) {
-                        studentIdScanner.stop();
-                    }
+                    if (studentIdScanner && studentIdScanner.isScanning) { studentIdScanner.stop(); }
                     borrowModal.style.display = 'none';
                 }
+                if (event.target == receiptModal) {
+                    receiptModal.style.display = 'none';
+                }
             };
-            
             document.getElementById('start-scan-student-id-btn').addEventListener('click', startStudentIdScan);
             document.getElementById('confirm-borrow-btn').addEventListener('click', confirmBorrow);
             document.getElementById('add-item-form').addEventListener('submit', manuallyAddItem);
-
+            document.getElementById('manual-id-btn').addEventListener('click', () => {
+                const manualInput = document.getElementById('manual-id-input');
+                const itemId = manualInput.value.trim();
+                if (itemId) {
+                    handleScan(itemId);
+                    manualInput.value = '';
+                } else {
+                    alert('กรุณากรอกรหัสอุปกรณ์');
+                }
+            });
             await fetchDataFromSheet();
             startScanner();
         }
-
-        function startScanner() {
-            mainScanner = new Html5Qrcode("scanner-container");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            mainScanner.start({ facingMode: "environment" }, config, (decodedText, decodedResult) => {
-                mainScanner.pause();
-                handleScan(decodedText);
-                setTimeout(() => { try { mainScanner.resume(); } catch(e) { console.error("Could not resume main scanner.", e); } }, 2000);
-            }).catch(err => alert("ไม่สามารถเปิดกล้องหลักได้"));
-        }
-
-        async function manuallyAddItem(event) {
-            event.preventDefault();
-            const idInput = document.getElementById('new-item-id-input');
-            const nameInput = document.getElementById('new-item-name-input');
-            const categorySelect = document.getElementById('new-item-category-select');
-            
-            const newItemId = idInput.value.trim();
-            const newItemName = nameInput.value.trim();
-            const newItemCategory = categorySelect.value;
-            
-            if (!newItemId || !newItemName || !newItemCategory) {
-                alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
-                return;
-            }
-            if (db.items[newItemId]) {
-                alert('มีรหัสอุปกรณ์นี้ในระบบแล้ว');
-                return;
-            }
-            const payload = {
-                action: "addItem",
-                payload: { id: newItemId, name: newItemName, category: newItemCategory }
-            };
-            await updateSheetData(payload);
-            alert(`เพิ่มอุปกรณ์ "${newItemName}" เข้าระบบสำเร็จแล้ว`);
-            idInput.value = '';
-            nameInput.value = '';
-            categorySelect.value = '';
-        }
-        
         async function handleScan(itemId) {
             const item = db.items[itemId];
             if (!item) {
@@ -287,56 +356,30 @@
             if (item.status === 'อยู่ในคลัง') {
                 openBorrowModal(itemId);
             } else {
-                const staffName = prompt(`ยืนยันการคืน: ${item.name}\nกรุณากรอกชื่อเจ้าหน้าที่ผู้รับคืน:`);
+                const staffName = prompt(`ยืนยันการคืน: ${item.name}\nผู้ยืมปัจจุบัน: ${item.currentBorrowerName}\n\nกรุณากรอกชื่อเจ้าหน้าที่ผู้รับคืน:`);
                 if (staffName && staffName.trim() !== '') {
                     const payload = {
                         action: "updateItemStatus",
                         payload: { id: itemId, newStatus: "อยู่ในคลัง", action: "คืน", staff: staffName.trim() }
                     };
-                    await updateSheetData(payload);
-                    alert(`บันทึกการคืน "${item.name}" สำเร็จ`);
+                    const updateSuccess = await updateSheetData(payload);
+                    if (updateSuccess) {
+                        alert(`บันทึกการคืน "${item.name}" สำเร็จ`);
+                        showReceiptModal({
+                            transactionType: 'คืน',
+                            itemName: item.name,
+                            itemId: item.id,
+                            borrowerName: item.currentBorrowerName || 'N/A',
+                            borrowerId: item.currentBorrowerId || 'N/A',
+                            staffName: staffName.trim(),
+                            timestamp: new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' })
+                        });
+                    }
                 } else {
                     alert('ยกเลิกรายการคืน');
                 }
             }
         }
-        
-        function openBorrowModal(itemId) {
-            const modal = document.getElementById('borrow-modal');
-            const item = db.items[itemId];
-            modal.dataset.itemId = itemId;
-            document.getElementById('borrow-item-info').textContent = `${item.name} (${item.id})`;
-            document.getElementById('borrower-name-input').value = '';
-            document.getElementById('student-id-input').value = '';
-            document.getElementById('staff-name-input').value = '';
-            document.getElementById('borrower-scanner-container').style.display = 'none';
-            modal.style.display = 'block';
-        }
-
-        function startStudentIdScan() {
-            const scannerContainer = document.getElementById('borrower-scanner-container');
-            scannerContainer.style.display = 'block';
-            
-            if (!studentIdScanner) {
-                 studentIdScanner = new Html5Qrcode('borrower-scanner-container');
-            }
-           
-            const config = { fps: 10, qrbox: { width: 250, height: 100 } };
-            const successCallback = (decodedText, decodedResult) => {
-                document.getElementById('student-id-input').value = decodedText;
-                studentIdScanner.stop().then(() => {
-                    scannerContainer.style.display = 'none';
-                    alert(`สแกนรหัสสำเร็จ: ${decodedText}`);
-                }).catch(err => {
-                    console.error("Error stopping student ID scanner.", err);
-                    scannerContainer.style.display = 'none';
-                });
-            };
-            
-            studentIdScanner.start({ facingMode: "environment" }, config, successCallback)
-              .catch(err => alert('ไม่สามารถเปิดกล้องสแกนรหัสนักศึกษาได้'));
-        }
-
         async function confirmBorrow() {
             const modal = document.getElementById('borrow-modal');
             const itemId = modal.dataset.itemId;
@@ -355,89 +398,28 @@
                 }
             };
             modal.style.display = 'none';
-            await updateSheetData(payload);
-            alert(`บันทึกการยืม "${db.items[itemId]?.name}" ให้กับ "${borrowerName}" สำเร็จ!`);
-        }
-
-        function renderUI() {
-            renderItemsList();
-            renderHistoryTable();
-        }
-
-        function renderItemsList() {
-            const container = document.getElementById('items-list-container');
-            container.innerHTML = '';
-            const groupedItems = {};
-            Object.values(db.items).forEach(item => {
-                if (!groupedItems[item.category]) groupedItems[item.category] = [];
-                groupedItems[item.category].push(item);
-            });
-            categories.forEach(category => {
-                if (groupedItems[category] && groupedItems[category].length > 0) {
-                    const button = document.createElement('button');
-                    button.className = 'category-toggle';
-                    button.innerHTML = `<span>${category} (${groupedItems[category].length})</span>`;
-                    container.appendChild(button);
-                    const itemsDiv = document.createElement('div');
-                    itemsDiv.className = 'items-in-category';
-                    groupedItems[category].sort((a,b) => a.name.localeCompare(b.name)).forEach(item => {
-                        const itemRow = document.createElement('div');
-                        itemRow.className = 'item-row';
-                        itemRow.setAttribute('data-item-id', item.id);
-                        const statusClass = item.status === 'อยู่ในคลัง' ? 'status-in' : 'status-out';
-                        itemRow.innerHTML = `<div><div class="item-name">${item.name}</div><div class="item-details">${item.id}</div></div><div class="item-details">อัปเดต: ${item.lastUpdate}</div><div class="${statusClass}">${item.status}</div>`;
-                        itemRow.addEventListener('click', () => showItemHistory(item.id));
-                        itemsDiv.appendChild(itemRow);
-                    });
-                    container.appendChild(itemsDiv);
-                    button.addEventListener('click', function() {
-                        this.classList.toggle('active');
-                        const content = this.nextElementSibling;
-                        if (content.style.maxHeight) {
-                            content.style.maxHeight = null;
-                        } else {
-                            content.style.maxHeight = content.scrollHeight + "px";
-                        }
-                    });
-                }
-            });
-        }
-        
-        function showItemHistory(itemId) {
-            const item = db.items[itemId];
-            const modal = document.getElementById('history-modal');
-            const modalTitle = document.getElementById('history-modal-title');
-            const modalTbody = document.querySelector('#modal-history-table tbody');
-            modalTitle.textContent = `ประวัติ: ${item.name} (${item.id})`;
-            modalTbody.innerHTML = '';
-            const itemHistory = db.history.filter(log => log.id === itemId);
-            if (itemHistory.length > 0) {
-                itemHistory.forEach(log => {
-                    const row = modalTbody.insertRow();
-                    row.innerHTML = `<td>${log.timestamp}</td><td>${log.action}</td><td>${log.staff}</td>`;
+            const updateSuccess = await updateSheetData(payload);
+            if(updateSuccess) {
+                alert(`บันทึกการยืม "${db.items[itemId]?.name}" ให้กับ "${borrowerName}" สำเร็จ!`);
+                showReceiptModal({
+                    transactionType: 'ยืม',
+                    itemName: db.items[itemId]?.name,
+                    itemId: itemId,
+                    borrowerName: borrowerName,
+                    borrowerId: borrowerId,
+                    staffName: staffName,
+                    timestamp: new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' })
                 });
-            } else {
-                const row = modalTbody.insertRow();
-                row.innerHTML = `<td colspan="3" style="text-align:center;">ยังไม่มีประวัติการทำรายการ</td>`;
             }
-            modal.style.display = 'block';
         }
-
-        function renderHistoryTable() {
-            const historyTbody = document.querySelector("#history-table tbody");
-            historyTbody.innerHTML = '';
-            db.history.forEach(log => {
-                const item = db.items[log.id] || { name: 'N/A' };
-                const row = historyTbody.insertRow();
-                const borrowerInfo = log.borrowerName ? `${log.borrowerName} (${log.borrowerId})` : '—';
-                row.innerHTML = `
-                    <td>${log.timestamp}</td>
-                    <td>${item.name} (${log.id})</td>
-                    <td>${borrowerInfo}</td>
-                    <td>${log.action}</td>
-                    <td>${log.staff}</td>`;
-            });
-        }
+        function startScanner() { mainScanner = new Html5Qrcode("scanner-container"); const config = { fps: 10, qrbox: { width: 250, height: 250 } }; mainScanner.start({ facingMode: "environment" }, config, (decodedText, decodedResult) => { mainScanner.pause(); handleScan(decodedText); setTimeout(() => { try { mainScanner.resume(); } catch(e) { console.error("Could not resume main scanner.", e); } }, 2000); }).catch(err => console.log("ไม่สามารถเปิดกล้องหลักได้. อาจจะเปิดบนคอมพิวเตอร์ที่ไม่มีกล้อง.")); }
+        async function manuallyAddItem(event) { event.preventDefault(); const idInput = document.getElementById('new-item-id-input'); const nameInput = document.getElementById('new-item-name-input'); const categorySelect = document.getElementById('new-item-category-select'); const newItemId = idInput.value.trim(); const newItemName = nameInput.value.trim(); const newItemCategory = categorySelect.value; if (!newItemId || !newItemName || !newItemCategory) { alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return; } if (db.items[newItemId]) { alert('มีรหัสอุปกรณ์นี้ในระบบแล้ว'); return; } const payload = { action: "addItem", payload: { id: newItemId, name: newItemName, category: newItemCategory } }; await updateSheetData(payload); alert(`เพิ่มอุปกรณ์ "${newItemName}" เข้าระบบสำเร็จแล้ว`); idInput.value = ''; nameInput.value = ''; categorySelect.value = ''; }
+        function openBorrowModal(itemId) { const modal = document.getElementById('borrow-modal'); const item = db.items[itemId]; modal.dataset.itemId = itemId; document.getElementById('borrow-item-info').textContent = `${item.name} (${item.id})`; document.getElementById('borrower-name-input').value = ''; document.getElementById('student-id-input').value = ''; document.getElementById('staff-name-input').value = ''; document.getElementById('borrower-scanner-container').style.display = 'none'; modal.style.display = 'block'; }
+        function startStudentIdScan() { const scannerContainer = document.getElementById('borrower-scanner-container'); scannerContainer.style.display = 'block'; if (!studentIdScanner) { studentIdScanner = new Html5Qrcode('borrower-scanner-container'); } const config = { fps: 10, qrbox: { width: 250, height: 100 } }; const successCallback = (decodedText, decodedResult) => { document.getElementById('student-id-input').value = decodedText; studentIdScanner.stop().then(() => { scannerContainer.style.display = 'none'; alert(`สแกนรหัสสำเร็จ: ${decodedText}`); }).catch(err => { console.error("Error stopping student ID scanner.", err); scannerContainer.style.display = 'none'; }); }; studentIdScanner.start({ facingMode: "environment" }, config, successCallback).catch(err => alert('ไม่สามารถเปิดกล้องสแกนรหัสนักศึกษาได้')); }
+        function renderUI() { renderItemsList(); renderHistoryTable(); }
+        function renderItemsList() { const container = document.getElementById('items-list-container'); container.innerHTML = ''; const groupedItems = {}; Object.values(db.items).forEach(item => { if (!groupedItems[item.category]) groupedItems[item.category] = []; groupedItems[item.category].push(item); }); categories.forEach(category => { if (groupedItems[category] && groupedItems[category].length > 0) { const button = document.createElement('button'); button.className = 'category-toggle'; button.innerHTML = `<span>${category} (${groupedItems[category].length})</span>`; container.appendChild(button); const itemsDiv = document.createElement('div'); itemsDiv.className = 'items-in-category'; groupedItems[category].sort((a,b) => a.name.localeCompare(b.name)).forEach(item => { const itemRow = document.createElement('div'); itemRow.className = 'item-row'; itemRow.setAttribute('data-item-id', item.id); let borrowerInfoHTML = ''; if (item.status === 'ถูกยืม' && item.currentBorrowerName) { borrowerInfoHTML = `<div class="borrower-details">ยืมโดย: ${item.currentBorrowerName}</div>`; } const statusClass = item.status === 'อยู่ในคลัง' ? 'status-in' : 'status-out'; itemRow.innerHTML = `<div><div class="item-name">${item.name}</div>${borrowerInfoHTML}</div><div class="item-details">${item.id}<br>อัปเดต: ${item.lastUpdate}</div><div class="${statusClass}">${item.status}</div>`; itemRow.addEventListener('click', () => showItemHistory(item.id)); itemsDiv.appendChild(itemRow); }); container.appendChild(itemsDiv); button.addEventListener('click', function() { this.classList.toggle('active'); const content = this.nextElementSibling; if (content.style.maxHeight) { content.style.maxHeight = null; } else { content.style.maxHeight = content.scrollHeight + "px"; } }); } }); }
+        function showItemHistory(itemId) { const item = db.items[itemId]; if (!item) return; const modal = document.getElementById('history-modal'); const modalTitle = document.getElementById('history-modal-title'); const modalTbody = document.querySelector('#modal-history-table tbody'); modalTitle.textContent = `ประวัติ: ${item.name} (${item.id})`; modalTbody.innerHTML = ''; const itemHistory = db.history.filter(log => log.id === itemId); if (itemHistory.length > 0) { itemHistory.forEach(log => { const row = modalTbody.insertRow(); row.innerHTML = `<td>${log.timestamp}</td><td>${log.action}</td><td>${log.staff}</td>`; }); } else { const row = modalTbody.insertRow(); row.innerHTML = `<td colspan="3" style="text-align:center;">ยังไม่มีประวัติการทำรายการ</td>`; } modal.style.display = 'block'; }
+        function renderHistoryTable() { const historyTbody = document.querySelector("#history-table tbody"); historyTbody.innerHTML = ''; db.history.forEach(log => { const item = db.items[log.id] || { name: 'N/A' }; const row = historyTbody.insertRow(); const borrowerInfo = log.borrowerName ? `${log.borrowerName} (${log.borrowerId})` : '—'; row.innerHTML = `<td>${log.timestamp}</td><td>${item.name} (${log.id})</td><td>${borrowerInfo}</td><td>${log.action}</td><td>${log.staff}</td>`; }); }
     </script>
 </body>
 </html>
